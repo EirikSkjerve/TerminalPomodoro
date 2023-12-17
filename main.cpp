@@ -10,6 +10,14 @@ int studyTime;
 int pauseTime;
 int totalTime;
 
+void clearLine() {
+    cout << "\033[2K\r" << "\033[2K\r" << "\033[2K\r" << flush;
+}
+void clearScreen() {
+    system("cls");
+    cout << "\n \n \n \n";
+}
+
 bool is_number(const std::string& s)
 {
     std::string::const_iterator it = s.begin();
@@ -40,15 +48,16 @@ void inquire(){
     totalTime = tt;
 
     char yes_no;
-    cout << "\nPlease confirm these settings (y if yes, any other otherwise) \n" 
+    cout << "\nPlease confirm these settings (y/n) \n" 
         << "Total study time: " << totalTime << "\n"
         << "Interval time: " << studyTime << "\n"
-        << "Pause time:" << pauseTime << "\n";
+        << "Pause time: " << pauseTime << "\n";
     cin >> yes_no;
     if(yes_no == 'y' || yes_no == 'Y'){
         return;
     }
     cout << " \n ----------------------------- \n \n";
+    clearScreen();
     inquire();
 }
 void welcome(){
@@ -60,48 +69,62 @@ void welcome(){
     inquire();
 }
 
-
-
 void working(){
     int remWork = studyTime;
-    cout << "Working \n";
     cout << "Remaining: \n";
+
     while (remWork > 0){
         cout << "\r" << setw(3) << setfill('0') << remWork << flush << "s";
-        this_thread::sleep_for(chrono::milliseconds(75));
+        this_thread::sleep_for(chrono::milliseconds(100));
         remWork--;
-
     }
-    cout << "\n";
+
+    clearScreen();
 }
 
 void pause(){
     int remPause = pauseTime;
+
+    cout << "Remaining: \n";
+    while (remPause > 0){
+        cout << "\r" << setw(3) << setfill('0') << remPause << flush << "s";
+        this_thread::sleep_for(chrono::milliseconds(100));
+        remPause--;
+
+    }
+
+    clearScreen();
 }
 
 void mainLoop(){
 
     int remaining = totalTime; 
+    char start;
+    cout << "\r" << "Press s to start pomodoro\n";
+    cin >> start;
 
-    cout << "\r" << "Starting Pomodoro \n";
+    if (start != 's' && start != 'S'){
+        return;
+    }
+
+    clearScreen();
 
     while (remaining >= 0){
         
+        cout << "Working \n";
         working();
+        remaining -= studyTime;
+        
+        
+        cout << "Pause \n";
         pause();
-        /*
-        cout << "\r" << setw(3) << setfill('0') << remaining << flush << "\b";
-        this_thread::sleep_for(chrono::milliseconds(75));
-        */
+        remaining -= pauseTime;
     }
 }
 int main(){
 
-    //welcome();
+    welcome();
     
-    // dev
-    totalTime = 300; 
-    studyTime = 100;
     mainLoop();
     return 0;
 }
