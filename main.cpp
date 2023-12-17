@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <cmath>
 #include <chrono>
 #include <thread>
 #include <Windows.h>
@@ -9,6 +10,8 @@ using namespace std;
 int studyTime;
 int pauseTime;
 int totalTime;
+int totalIntervals;
+int intervalNum;
 
 // Function to minimize the terminal window (Windows-specific)
 void minimizeWindow() {
@@ -88,11 +91,14 @@ void inquire(){
     }
     pauseTime = pt;
 
+    totalIntervals = ceil(totalTime / (studyTime+pauseTime));
+
     char yes_no;
     cout << "\nPlease confirm these settings (y/n) \n" 
         << "Total study time: " << totalTime << "m \n"
         << "Interval time: " << studyTime << "m \n"
-        << "Pause time: " << pauseTime << "m \n";
+        << "Pause time: " << pauseTime << "m \n"
+        << "Number of intervals: " << totalIntervals << "\n";
     cin >> yes_no;
 
     if(yes_no == 'y' || yes_no == 'Y'){
@@ -157,6 +163,8 @@ void pause(){
 void mainLoop(){
 
     int remaining = totalTime*60; 
+    intervalNum = 1;
+
     char start;
     cout << "\n" << "Press s to start pomodoro\n";
     cin >> start;
@@ -167,16 +175,17 @@ void mainLoop(){
 
     clearScreen();
 
-    while (remaining >= 0){
+    while (remaining >= 0 && intervalNum <= totalIntervals){
         
-        cout << "Working. To get popup on pause, minimize this window. \n" << "Happy working! \n";
+        cout << "Working, interval " << intervalNum << "/" << totalIntervals << ". To get popup on pause, minimize this window. \n" << "Happy working! \n";
         working();
-        remaining -= studyTime;
+        remaining -= studyTime*60;
         
         
-        cout << "Pause. To get popup on start again, minimize this window. \n" << "Enjoy your break! \n";
+        cout << "Pause, interval "  << intervalNum << "/" << totalIntervals << ". To get popup on start again, minimize this window. \n" << "Enjoy your break! \n";
         pause();
-        remaining -= pauseTime;
+        remaining -= pauseTime*60;
+        intervalNum++;
     }
 }
 int main(){
@@ -186,5 +195,6 @@ int main(){
     
     // starts the main loop after retrieving timer-settings
     mainLoop();
+    cout << "\nWell done!";
     return 0;
 }
