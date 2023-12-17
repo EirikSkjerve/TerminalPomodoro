@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <ctime>
 #include <chrono>
 #include <thread>
@@ -61,18 +62,23 @@ void welcome(){
 
 void pomodoro(){
 
-    int secondsElapsed = 0;
-    
-    while (secondsElapsed < totalTime){
+    int remaining = totalTime; 
+    while (remaining >= 0){
 
-        this_thread::sleep_for(chrono::milliseconds(1000));
-        secondsElapsed++;
-        cout << (totalTime - secondsElapsed) << "\n";
+        cout << "\r" << setw(3) << setfill('0') << remaining << flush << "\b";
+        this_thread::sleep_for(chrono::milliseconds(75));
+
+        //cout << "\b";
+        remaining -= 1;
     }
 }
 
 int main(){
 
-    welcome();
+    //welcome();
+    
+    // dev
+    totalTime = 130; 
+    pomodoro();
     return 0;
 }
