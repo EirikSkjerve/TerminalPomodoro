@@ -12,29 +12,19 @@ int totalTime;
 
 // Function to minimize the terminal window (Windows-specific)
 void minimizeWindow() {
-#ifdef _WIN32
     HWND hwnd = GetConsoleWindow();
     ShowWindow(hwnd, SW_MINIMIZE);
-#endif
 }
 
 // Function to check if the terminal window is minimized (Windows-specific)
 bool isWindowMinimized() {
-#ifdef _WIN32
     HWND hwnd = GetConsoleWindow();
     return IsIconic(hwnd) != 0;
-#else
-    return false; // Placeholder for non-Windows systems
-#endif
 }
 
 // Function to check if the terminal window is in the foreground (Windows-specific)
 bool isWindowInForeground() {
-#ifdef _WIN32
     return GetForegroundWindow() == GetConsoleWindow();
-#else
-    return true; // Placeholder for non-Windows systems
-#endif
 }
 
 // Function to bring the terminal window to the front
@@ -68,28 +58,41 @@ void inquire(){
     int tt = 0;
     int st = 0;
     int pt = 0;
-    bool rec = false;
 
-    cout << "How long would you like to study for? (Write number from 1-999 seconds (in dev mode))\n";
+    cout << "How long would you like to study for? (write minutes from 1-999)\n";
     cin >> tt;
 
-    cout << "How long intervals do you want? (write number from 1-999 seconds (in dev mode))\n";
+    cout << "How long intervals do you want? (write minutes from 1-999)\n";
     cin >> st;
 
-    cout << "How long breaks do you want? (write number from 1-999 seconds (in dev mode))\n";
+    cout << "How long breaks do you want? (write minutes from 1 and-999)\n";
     cin >> pt;
 
     // TODO check st, pt, tt for valid integers
 
-    studyTime = st;
-    pauseTime = pt;
+    while (!(tt > 0 && tt < 999)){
+        cout << "Invalid input, try again \n";
+        cin >> tt;
+    } 
     totalTime = tt;
+
+    while (!(st > 0 && st <=totalTime)){
+        cout << "Invalid input, try again \n";
+        cin >> st;
+    }
+    studyTime = st;
+
+    while(!(pt > 0 && pt <= (tt-st))){
+        cout << "Invalid input, try again \n";
+        cin >> pt;
+    }
+    pauseTime = pt;
 
     char yes_no;
     cout << "\nPlease confirm these settings (y/n) \n" 
-        << "Total study time: " << totalTime << "\n"
-        << "Interval time: " << studyTime << "\n"
-        << "Pause time: " << pauseTime << "\n";
+        << "Total study time: " << totalTime << "m \n"
+        << "Interval time: " << studyTime << "m \n"
+        << "Pause time: " << pauseTime << "m \n";
     cin >> yes_no;
 
     if(yes_no == 'y' || yes_no == 'Y'){
@@ -111,16 +114,19 @@ void welcome(){
 }
 
 void working(){
-    int remWork = studyTime;
+    int remWork = studyTime*60;
     cout << "Remaining: \n";
 
     while (remWork > 0){
-        cout << "\r" << setw(3) << setfill('0') << remWork << flush << "s";
-        this_thread::sleep_for(chrono::milliseconds(1000));
-        remWork--;
-        if(!isWindowInForeground && !isWindowMinimized){
+        // TODO dynamically change setw() to log base 10 of remaining 
+        cout << "\r" << setw(5) << setfill('0') << remWork << flush << "s";
+        if(!isWindowInForeground){
+            bringToFront();
             minimizeWindow();
         }
+        this_thread::sleep_for(chrono::milliseconds(100));
+        remWork--;
+
     }
 
     clearScreen();
@@ -128,15 +134,18 @@ void working(){
 }
 
 void pause(){
-    int remPause = pauseTime;
+    int remPause = pauseTime * 60;
 
     cout << "Remaining: \n";
     while (remPause > 0){
-        cout << "\r" << setw(3) << setfill('0') << remPause << flush << "s";
-        this_thread::sleep_for(chrono::milliseconds(1000));
+        // TODO dynamically change setw() to log base 10 of remaining 
+        cout << "\r" << setw(5) << setfill('0') << remPause << flush << "s";
+        this_thread::sleep_for(chrono::milliseconds(100));
         remPause--;
 
-        if(!isWindowInForeground && !isWindowMinimized){
+        if(!isWindowInForeground){
+
+            bringToFront();
             minimizeWindow();
         }
     }
@@ -147,9 +156,9 @@ void pause(){
 
 void mainLoop(){
 
-    int remaining = totalTime; 
+    int remaining = totalTime*60; 
     char start;
-    cout << "\r" << "Press s to start pomodoro\n";
+    cout << "\n" << "Press s to start pomodoro\n";
     cin >> start;
 
     if (start != 's' && start != 'S'){
@@ -160,12 +169,12 @@ void mainLoop(){
 
     while (remaining >= 0){
         
-        cout << "Working \n";
+        cout << "Working. To get popup on pause, minimize this window. \n" << "Happy working! \n";
         working();
         remaining -= studyTime;
         
         
-        cout << "Pause \n";
+        cout << "Pause. To get popup on start again, minimize this window. \n" << "Enjoy your break! \n";
         pause();
         remaining -= pauseTime;
     }
