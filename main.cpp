@@ -60,25 +60,48 @@ void welcome(){
     inquire();
 }
 
-void pomodoro(){
 
-    int remaining = totalTime; 
-    while (remaining >= 0){
 
-        cout << "\r" << setw(3) << setfill('0') << remaining << flush << "\b";
+void working(){
+    int remWork = studyTime;
+    cout << "Working \n";
+    cout << "Remaining: \n";
+    while (remWork > 0){
+        cout << "\r" << setw(3) << setfill('0') << remWork << flush << "s";
         this_thread::sleep_for(chrono::milliseconds(75));
+        remWork--;
 
-        //cout << "\b";
-        remaining -= 1;
     }
+    cout << "\n";
 }
 
+void pause(){
+    int remPause = pauseTime;
+}
+
+void mainLoop(){
+
+    int remaining = totalTime; 
+
+    cout << "\r" << "Starting Pomodoro \n";
+
+    while (remaining >= 0){
+        
+        working();
+        pause();
+        /*
+        cout << "\r" << setw(3) << setfill('0') << remaining << flush << "\b";
+        this_thread::sleep_for(chrono::milliseconds(75));
+        */
+    }
+}
 int main(){
 
     //welcome();
     
     // dev
-    totalTime = 130; 
-    pomodoro();
+    totalTime = 300; 
+    studyTime = 100;
+    mainLoop();
     return 0;
 }
