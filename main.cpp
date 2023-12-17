@@ -3,16 +3,53 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
-
+#include <Windows.h>
 using namespace std;
 
 int studyTime;
 int pauseTime;
 int totalTime;
 
+// Function to minimize the terminal window (Windows-specific)
+void minimizeWindow() {
+#ifdef _WIN32
+    HWND hwnd = GetConsoleWindow();
+    ShowWindow(hwnd, SW_MINIMIZE);
+#endif
+}
+
+// Function to check if the terminal window is minimized (Windows-specific)
+bool isWindowMinimized() {
+#ifdef _WIN32
+    HWND hwnd = GetConsoleWindow();
+    return IsIconic(hwnd) != 0;
+#else
+    return false; // Placeholder for non-Windows systems
+#endif
+}
+
+// Function to check if the terminal window is in the foreground (Windows-specific)
+bool isWindowInForeground() {
+#ifdef _WIN32
+    return GetForegroundWindow() == GetConsoleWindow();
+#else
+    return true; // Placeholder for non-Windows systems
+#endif
+}
+
+// Function to bring the terminal window to the front
+void bringToFront() {
+    HWND hwnd = GetConsoleWindow();
+    ShowWindow(hwnd, SW_RESTORE);
+    SetForegroundWindow(hwnd);
+}
+
+// function to clear one line
 void clearLine() {
     cout << "\033[2K\r" << "\033[2K\r" << "\033[2K\r" << flush;
 }
+
+// function to clear the entire terminal screen
 void clearScreen() {
     system("cls");
     cout << "\n \n \n \n";
@@ -25,6 +62,7 @@ bool is_number(const std::string& s)
     return !s.empty() && it == s.end();
 }
 
+// inquires the user for timer-settings
 void inquire(){
 
     int tt = 0;
@@ -53,13 +91,16 @@ void inquire(){
         << "Interval time: " << studyTime << "\n"
         << "Pause time: " << pauseTime << "\n";
     cin >> yes_no;
+
     if(yes_no == 'y' || yes_no == 'Y'){
         return;
     }
+
     cout << " \n ----------------------------- \n \n";
     clearScreen();
     inquire();
 }
+
 void welcome(){
 
     auto start = chrono::system_clock::now();
@@ -75,11 +116,15 @@ void working(){
 
     while (remWork > 0){
         cout << "\r" << setw(3) << setfill('0') << remWork << flush << "s";
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(1000));
         remWork--;
+        if(!isWindowInForeground && !isWindowMinimized){
+            minimizeWindow();
+        }
     }
 
     clearScreen();
+    bringToFront();
 }
 
 void pause(){
@@ -88,12 +133,16 @@ void pause(){
     cout << "Remaining: \n";
     while (remPause > 0){
         cout << "\r" << setw(3) << setfill('0') << remPause << flush << "s";
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(1000));
         remPause--;
 
+        if(!isWindowInForeground && !isWindowMinimized){
+            minimizeWindow();
+        }
     }
 
     clearScreen();
+    bringToFront();
 }
 
 void mainLoop(){
@@ -123,8 +172,10 @@ void mainLoop(){
 }
 int main(){
 
+    // prints welcome message and inquires for timer-settings
     welcome();
     
+    // starts the main loop after retrieving timer-settings
     mainLoop();
     return 0;
 }
